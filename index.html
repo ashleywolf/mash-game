@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MASH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --paper: #fdf6e3;
+  --line-blue: #b8d4e8;
+  --margin-red: #e8a0a0;
+  --ink-blue: #2b4a7c;
+  --ink-dark: #1a1a2e;
+  --pen-red: #c0392b;
+  --pencil: #666;
+  --highlight-yellow: #fff3b0;
+}
+
+body {
+  font-family: 'Patrick Hand', cursive;
+  background: #d4c5a9;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+.notebook {
+  width: 100%;
+  max-width: 650px;
+  min-height: 90vh;
+  background: var(--paper);
+  position: relative;
+  border-radius: 2px;
+  box-shadow:
+    3px 3px 10px rgba(0,0,0,0.2),
+    inset 0 0 60px rgba(0,0,0,0.03);
+  padding: 20px 30px 40px 75px;
+  background-image:
+    repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      var(--line-blue) 31px,
+      var(--line-blue) 32px
+    );
+  background-position-y: 8px;
+}
+
+.notebook::before {
+  content: '';
+  position: absolute;
+  left: 60px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--margin-red);
+  opacity: 0.6;
+}
+
+.notebook::after {
+  content: '';
+  position: absolute;
+  left: 62px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--margin-red);
+  opacity: 0.4;
+}
+
+/* Spiral binding holes */
+.holes {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  pointer-events: none;
+}
+.hole {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid #ccc;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.15);
+  margin: 0 auto;
+}
+
+/* Title */
+.title-screen {
+  text-align: center;
+  padding-top: 60px;
+  cursor: pointer;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.mash-title {
+  font-family: 'Caveat', cursive;
+  font-size: 6rem;
+  font-weight: 700;
+  color: var(--ink-dark);
+  letter-spacing: 12px;
+  position: relative;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.mash-subtitle {
+  font-size: 1rem;
+  color: var(--pencil);
+  margin-bottom: 8px;
+}
+
+.mash-meanings {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.mash-meanings span {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--ink-blue);
+  position: relative;
+}
+
+.mash-meanings span::first-letter {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--pen-red);
+}
+
+.tap-to-start {
+  font-size: 1.3rem;
+  color: var(--pencil);
+  animation: pulse 2s ease-in-out infinite;
+  margin-top: 30px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.doodle {
+  position: absolute;
+  font-size: 1.4rem;
+  opacity: 0.3;
+  pointer-events: none;
+  color: var(--ink-blue);
+}
+
+/* Category input screen */
+.category-screen {
+  display: none;
+  padding-top: 20px;
+}
+
+.category-header {
+  font-family: 'Caveat', cursive;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--ink-dark);
+  margin-bottom: 6px;
+  line-height: 32px;
+}
+
+.category-subheader {
+  font-size: 1rem;
+  color: var(--pencil);
+  margin-bottom: 24px;
+  line-height: 32px;
+}
+
+.category-group {
+  margin-bottom: 20px;
+}
+
+.category-label {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--ink-blue);
+  display: block;
+  margin-bottom: 2px;
+  line-height: 32px;
+}
+
+.category-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+}
+
+.category-inputs input {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.15rem;
+  color: var(--ink-dark);
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--line-blue);
+  padding: 4px 2px;
+  outline: none;
+  line-height: 28px;
+  width: 100%;
+}
+
+.category-inputs input::placeholder {
+  color: #bbb;
+  font-style: italic;
+}
+
+.category-inputs input:focus {
+  border-bottom-color: var(--ink-blue);
+}
+
+.btn {
+  font-family: 'Caveat', cursive;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  background: var(--ink-blue);
+  border: none;
+  padding: 8px 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background 0.2s;
+  display: inline-block;
+}
+
+.btn:hover {
+  background: #1d3557;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--pencil);
+  font-size: 1.1rem;
+  text-decoration: underline;
+  padding: 8px 16px;
+  margin-left: 10px;
+}
+
+.btn-secondary:hover {
+  color: var(--ink-dark);
+  background: transparent;
+}
+
+/* Spiral screen */
+.spiral-screen {
+  display: none;
+  padding-top: 30px;
+  text-align: center;
+}
+
+.spiral-instruction {
+  font-family: 'Caveat', cursive;
+  font-size: 1.8rem;
+  color: var(--ink-dark);
+  margin-bottom: 6px;
+  line-height: 32px;
+}
+
+.spiral-sub {
+  font-size: 1rem;
+  color: var(--pencil);
+  margin-bottom: 20px;
+  line-height: 32px;
+}
+
+.spiral-canvas-wrap {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto 20px;
+  border: 2px dashed var(--line-blue);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.5);
+}
+
+.spiral-canvas-wrap canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.spiral-count {
+  font-family: 'Caveat', cursive;
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--pen-red);
+  min-height: 60px;
+  line-height: 1;
+}
+
+/* Elimination screen */
+.elimination-screen {
+  display: none;
+  padding-top: 20px;
+}
+
+.elim-header {
+  font-family: 'Caveat', cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ink-dark);
+  margin-bottom: 4px;
+  line-height: 32px;
+}
+
+.elim-number {
+  font-size: 1.1rem;
+  color: var(--pencil);
+  margin-bottom: 20px;
+  line-height: 32px;
+}
+
+.elim-category {
+  margin-bottom: 16px;
+}
+
+.elim-cat-name {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--ink-blue);
+  line-height: 32px;
+}
+
+.elim-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 2px;
+}
+
+.elim-option {
+  font-size: 1.15rem;
+  color: var(--ink-dark);
+  position: relative;
+  padding: 2px 4px;
+  line-height: 28px;
+  transition: opacity 0.3s;
+}
+
+.elim-option.eliminated {
+  opacity: 0.45;
+}
+
+.elim-option.eliminated::after {
+  content: '';
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  top: 50%;
+  height: 2px;
+  background: var(--pen-red);
+  transform: rotate(-3deg);
+  animation: strikethrough 0.3s ease-out forwards;
+}
+
+.elim-option.winner {
+  color: var(--pen-red);
+  font-weight: 600;
+  background: var(--highlight-yellow);
+  border-radius: 2px;
+  padding: 2px 6px;
+}
+
+.elim-option.current-count {
+  background: rgba(43, 74, 124, 0.08);
+  border-radius: 2px;
+}
+
+@keyframes strikethrough {
+  from { transform: scaleX(0) rotate(-3deg); }
+  to { transform: scaleX(1) rotate(-3deg); }
+}
+
+/* Results screen */
+.results-screen {
+  display: none;
+  padding-top: 30px;
+}
+
+.results-card {
+  background: #fffef5;
+  border: 2px solid var(--line-blue);
+  border-radius: 4px;
+  padding: 30px 24px;
+  position: relative;
+  transform: rotate(-0.8deg);
+  box-shadow: 2px 3px 8px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.results-card::before {
+  content: '📌';
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.6rem;
+}
+
+.results-title {
+  font-family: 'Caveat', cursive;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--ink-dark);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.results-fortune {
+  font-size: 1.2rem;
+  color: var(--ink-dark);
+  line-height: 2;
+  text-align: center;
+}
+
+.results-fortune .result-label {
+  color: var(--pencil);
+  font-size: 1rem;
+}
+
+.results-fortune .result-value {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--pen-red);
+}
+
+.results-story {
+  font-size: 1.15rem;
+  color: var(--ink-dark);
+  line-height: 1.8;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--line-blue);
+  text-align: center;
+}
+
+.results-actions {
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-line {
+  opacity: 0;
+  animation: resultReveal 0.4s ease-out forwards;
+}
+
+@keyframes resultReveal {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Mobile */
+@media (max-width: 500px) {
+  body { padding: 8px; }
+  .notebook { padding: 16px 16px 30px 55px; }
+  .notebook::before { left: 42px; }
+  .notebook::after { left: 44px; }
+  .holes { left: 4px; width: 24px; }
+  .hole { width: 16px; height: 16px; }
+  .mash-title { font-size: 4rem; letter-spacing: 8px; }
+  .mash-meanings span { font-size: 1.1rem; }
+  .category-inputs { grid-template-columns: 1fr; }
+  .spiral-canvas-wrap { width: 240px; height: 240px; }
+  .results-card { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="notebook">
+  <div class="holes">
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+    <div class="hole"></div>
+  </div>
+
+  <!-- TITLE SCREEN -->
+  <div class="title-screen" id="titleScreen">
+    <div>
+      <div class="mash-title">MASH</div>
+      <div class="mash-meanings">
+        <span>Mansion</span>
+        <span>Apartment</span>
+        <span>Shack</span>
+        <span>House</span>
+      </div>
+      <div class="mash-subtitle">the fortune-telling game</div>
+      <div class="tap-to-start">tap to play</div>
+    </div>
+    <div class="doodle" style="top:40px;right:20px;transform:rotate(15deg);">&#9733;</div>
+    <div class="doodle" style="bottom:80px;left:10px;transform:rotate(-10deg);">&#9825;</div>
+    <div class="doodle" style="top:120px;left:5px;transform:rotate(5deg);">~</div>
+    <div class="doodle" style="bottom:140px;right:30px;transform:rotate(-20deg);">&#9733;</div>
+    <div class="doodle" style="top:200px;right:10px;font-size:1rem;">&#10047;</div>
+  </div>
+
+  <!-- CATEGORY INPUT SCREEN -->
+  <div class="category-screen" id="categoryScreen">
+    <div class="category-header">Fill in your future</div>
+    <div class="category-subheader">4 options per category. leave blank for random picks!</div>
+    <div id="categoryGroups"></div>
+    <div style="text-align:center;">
+      <button class="btn" id="startSpiral">Draw the spiral &rarr;</button>
+    </div>
+  </div>
+
+  <!-- SPIRAL SCREEN -->
+  <div class="spiral-screen" id="spiralScreen">
+    <div class="spiral-instruction">Draw a spiral!</div>
+    <div class="spiral-sub">hold down and swirl around, then let go</div>
+    <div class="spiral-canvas-wrap">
+      <canvas id="spiralCanvas" width="560" height="560"></canvas>
+    </div>
+    <div class="spiral-count" id="spiralCount"></div>
+  </div>
+
+  <!-- ELIMINATION SCREEN -->
+  <div class="elimination-screen" id="eliminationScreen">
+    <div class="elim-header">Counting off...</div>
+    <div class="elim-number" id="elimNumber"></div>
+    <div id="elimCategories"></div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div class="results-screen" id="resultsScreen">
+    <div class="results-card">
+      <div class="results-title">Your Future</div>
+      <div class="results-fortune" id="resultsFortune"></div>
+      <div class="results-story" id="resultsStory"></div>
+    </div>
+    <div class="results-actions">
+      <button class="btn" id="playAgain">Play again!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    name: 'Home',
+    locked: true,
+    defaults: ['Mansion', 'Apartment', 'Shack', 'House']
+  },
+  {
+    name: 'Partner',
+    locked: false,
+    defaults: ['Your crush', 'A celebrity', 'Your best friend', 'A stranger on a train']
+  },
+  {
+    name: 'Job',
+    locked: false,
+    defaults: ['Astronaut', 'Dog walker', 'CEO', 'Professional napper']
+  },
+  {
+    name: 'Car',
+    locked: false,
+    defaults: ['Ferrari', 'Minivan', 'Bicycle', 'Monster truck']
+  },
+  {
+    name: 'City',
+    locked: false,
+    defaults: ['Paris', 'Tokyo', 'A small town nobody has heard of', 'The moon']
+  },
+  {
+    name: '# of Kids',
+    locked: false,
+    defaults: ['0', '2', '5', '13']
+  },
+  {
+    name: 'Pet',
+    locked: false,
+    defaults: ['Golden retriever', 'Cat army', 'Parrot', 'Tarantula']
+  }
+];
+
+let gameData = {};
+let magicNumber = 0;
+
+// ---- TITLE SCREEN ----
+document.getElementById('titleScreen').addEventListener('click', () => {
+  showScreen('categoryScreen');
+  buildCategoryForm();
+});
+
+function showScreen(id) {
+  document.querySelectorAll('.title-screen, .category-screen, .spiral-screen, .elimination-screen, .results-screen').forEach(el => {
+    el.style.display = 'none';
+  });
+  const screen = document.getElementById(id);
+  screen.style.display = 'block';
+  screen.classList.add('fade-in');
+}
+
+// ---- CATEGORY FORM ----
+function buildCategoryForm() {
+  const container = document.getElementById('categoryGroups');
+  container.innerHTML = '';
+
+  CATEGORIES.forEach((cat, ci) => {
+    const group = document.createElement('div');
+    group.className = 'category-group';
+
+    const label = document.createElement('label');
+    label.className = 'category-label';
+    label.textContent = cat.name;
+    group.appendChild(label);
+
+    const inputs = document.createElement('div');
+    inputs.className = 'category-inputs';
+
+    for (let i = 0; i < 4; i++) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 40;
+      input.dataset.cat = ci;
+      input.dataset.idx = i;
+      if (cat.locked) {
+        input.value = cat.defaults[i];
+        input.readOnly = true;
+        input.style.color = 'var(--pencil)';
+      } else {
+        input.placeholder = cat.defaults[i];
+      }
+      inputs.appendChild(input);
+    }
+
+    group.appendChild(inputs);
+    container.appendChild(group);
+  });
+}
+
+document.getElementById('startSpiral').addEventListener('click', () => {
+  // Collect answers
+  gameData.categories = CATEGORIES.map((cat, ci) => {
+    const options = [];
+    for (let i = 0; i < 4; i++) {
+      const input = document.querySelector(`input[data-cat="${ci}"][data-idx="${i}"]`);
+      const val = input.value.trim() || cat.defaults[i];
+      options.push(val);
+    }
+    return { name: cat.name, options };
+  });
+
+  showScreen('spiralScreen');
+  initSpiral();
+});
+
+// ---- SPIRAL ----
+function initSpiral() {
+  const canvas = document.getElementById('spiralCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  let drawing = false;
+  let points = [];
+  let crossings = 0;
+  let lastAngle = null;
+  let totalAngle = 0;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+
+  const countEl = document.getElementById('spiralCount');
+  countEl.textContent = '';
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    points = [];
+    totalAngle = 0;
+    lastAngle = null;
+    crossings = 0;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.strokeStyle = '#2b4a7c';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const pos = getPos(e);
+    ctx.moveTo(pos.x, pos.y);
+    points.push(pos);
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    points.push(pos);
+
+    // Calculate angle from center
+    const angle = Math.atan2(pos.y - cy, pos.x - cx);
+    if (lastAngle !== null) {
+      let delta = angle - lastAngle;
+      // Normalize to -PI..PI
+      while (delta > Math.PI) delta -= 2 * Math.PI;
+      while (delta < -Math.PI) delta += 2 * Math.PI;
+      totalAngle += delta;
+    }
+    lastAngle = angle;
+
+    // Count full rotations
+    const loops = Math.floor(Math.abs(totalAngle) / (2 * Math.PI));
+    if (loops > 0 && loops !== crossings) {
+      crossings = loops;
+      countEl.textContent = crossings;
+    }
+  }
+
+  function endDraw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    drawing = false;
+
+    magicNumber = Math.max(crossings, 2);
+    countEl.textContent = magicNumber;
+
+    if (magicNumber >= 2) {
+      setTimeout(() => {
+        showScreen('eliminationScreen');
+        runElimination();
+      }, 800);
+    } else {
+      countEl.textContent = 'Keep going! Need at least 2 loops';
+      // Reset for another try
+      setTimeout(() => {
+        countEl.textContent = '';
+      }, 1500);
+    }
+  }
+
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', endDraw);
+  canvas.addEventListener('mouseleave', endDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', draw, { passive: false });
+  canvas.addEventListener('touchend', endDraw, { passive: false });
+}
+
+// ---- ELIMINATION ----
+function runElimination() {
+  const container = document.getElementById('elimCategories');
+  container.innerHTML = '';
+  document.getElementById('elimNumber').textContent = `Magic number: ${magicNumber}`;
+
+  // Build flat list of all options with references
+  const allOptions = [];
+  const catData = gameData.categories.map(cat => {
+    const alive = cat.options.map((opt, i) => ({
+      text: opt,
+      eliminated: false,
+      catName: cat.name,
+      el: null
+    }));
+    return { name: cat.name, options: alive };
+  });
+
+  // Render
+  catData.forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'elim-category';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'elim-cat-name';
+    nameEl.textContent = cat.name;
+    div.appendChild(nameEl);
+
+    const optionsDiv = document.createElement('div');
+    optionsDiv.className = 'elim-options';
+
+    cat.options.forEach(opt => {
+      const span = document.createElement('span');
+      span.className = 'elim-option';
+      span.textContent = opt.text;
+      opt.el = span;
+      optionsDiv.appendChild(span);
+      allOptions.push(opt);
+    });
+
+    div.appendChild(optionsDiv);
+    container.appendChild(div);
+  });
+
+  // Run elimination with animation
+  eliminateOptions(catData, allOptions);
+}
+
+async function eliminateOptions(catData, allOptions) {
+  const n = magicNumber;
+
+  // Get all alive options in order (cycling through categories)
+  function getAliveList() {
+    const alive = [];
+    catData.forEach(cat => {
+      const remaining = cat.options.filter(o => !o.eliminated);
+      if (remaining.length > 1) {
+        remaining.forEach(o => alive.push(o));
+      }
+    });
+    return alive;
+  }
+
+  let position = 0;
+
+  async function eliminateOne() {
+    const alive = getAliveList();
+    if (alive.length === 0) return false;
+
+    // Count through
+    for (let step = 0; step < n; step++) {
+      const idx = (position + step) % alive.length;
+      alive[idx].el.classList.add('current-count');
+      await sleep(80);
+      alive[idx].el.classList.remove('current-count');
+    }
+
+    const targetIdx = (position + n - 1) % alive.length;
+    const target = alive[targetIdx];
+    target.eliminated = true;
+    target.el.classList.add('eliminated');
+    position = targetIdx % alive.length;
+
+    await sleep(300);
+    return true;
+  }
+
+  // Keep eliminating until each category has exactly 1
+  let safetyCounter = 0;
+  while (getAliveList().length > 0 && safetyCounter < 100) {
+    await eliminateOne();
+    safetyCounter++;
+  }
+
+  // Mark winners
+  await sleep(400);
+  catData.forEach(cat => {
+    const winner = cat.options.find(o => !o.eliminated);
+    if (winner) {
+      winner.el.classList.add('winner');
+    }
+  });
+
+  await sleep(1000);
+  showResults(catData);
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ---- RESULTS ----
+function showResults(catData) {
+  showScreen('resultsScreen');
+
+  const fortuneEl = document.getElementById('resultsFortune');
+  fortuneEl.innerHTML = '';
+
+  const winners = {};
+  const labels = {
+    'Home': 'You will live in a',
+    'Partner': 'You will marry',
+    'Job': 'You will work as a',
+    'Car': 'You will drive a',
+    'City': 'You will live in',
+    '# of Kids': 'You will have',
+    'Pet': 'Your pet will be a'
+  };
+
+  const kidsSuffix = {
+    '0': ' kids',
+    '1': ' kid',
+  };
+
+  catData.forEach((cat, i) => {
+    const winner = cat.options.find(o => !o.eliminated);
+    if (!winner) return;
+
+    winners[cat.name] = winner.text;
+
+    const line = document.createElement('div');
+    line.className = 'result-line';
+    line.style.animationDelay = `${i * 0.15}s`;
+
+    const label = labels[cat.name] || cat.name + ':';
+    let value = winner.text;
+
+    if (cat.name === '# of Kids') {
+      const suffix = kidsSuffix[value] || ' kids';
+      value = value + suffix;
+    }
+
+    line.innerHTML = `<span class="result-label">${label} </span><span class="result-value">${value}</span>`;
+    fortuneEl.appendChild(line);
+  });
+
+  // Build fun story
+  const storyEl = document.getElementById('resultsStory');
+  const home = winners['Home'] || 'a house';
+  const partner = winners['Partner'] || 'someone';
+  const job = winners['Job'] || 'something';
+  const car = winners['Car'] || 'a car';
+  const city = winners['City'] || 'somewhere';
+  const kids = winners['# of Kids'] || '0';
+  const pet = winners['Pet'] || 'a pet';
+
+  const kidsText = kids === '0' ? 'no kids' : kids === '1' ? '1 kid' : `${kids} kids`;
+
+  storyEl.textContent = `You and ${partner} will live in a ${home.toLowerCase()} in ${city} with ${kidsText} and a ${pet.toLowerCase()}. You'll drive your ${car.toLowerCase()} to your job as a ${job.toLowerCase()} every day.`;
+}
+
+// ---- PLAY AGAIN ----
+document.getElementById('playAgain').addEventListener('click', () => {
+  gameData = {};
+  magicNumber = 0;
+  showScreen('titleScreen');
+});
+</script>
+
+</body>
+</html>
